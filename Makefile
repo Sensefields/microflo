@@ -107,11 +107,10 @@ build-stellaris: update-defs
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux: update-defs
-	rm -rf build/linux
-	mkdir -p build/linux
+build-linux: libuv
+	mkdir -p build/linux || false
 	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
+	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt -pthread ./lib/libuv.a -I./include
 
 build-emscripten: update-defs
 	rm -rf build/emscripten
@@ -120,6 +119,10 @@ build-emscripten: update-defs
 	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
 build: build-arduino build-avr
+
+libuv:
+	cd thirdparty/libuv && ./autogen.sh
+	cd thirdparty/libuv && ./configure --prefix=`pwd`/../../build/linux/ && make install
 
 upload: build-arduino
 	cd build/arduino && ino upload $(INOUPLOADOPTIONS) $(INOOPTIONS)

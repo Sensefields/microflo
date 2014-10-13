@@ -10,3 +10,6 @@
 [submodule "thirdparty/Adafruit_WS2801"]
 	path = thirdparty/Adafruit_WS2801
 	url = https://github.com/adafruit/Adafruit-WS2801-Library.git
+[submodule "thirdparty/libuv"]
+	path = thirdparty/libuv
+	url = git@github.com:joyent/libuv.git
