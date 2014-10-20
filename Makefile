@@ -50,6 +50,8 @@ endif
 
 EMSCRIPTEN_EXPORTS='["_emscripten_runtime_new", "_emscripten_runtime_free", "_emscripten_runtime_run", "_emscripten_runtime_send", "_emscripten_runtime_setup"]'
 
+COMMON_CFLAGS:=-I../../microflo -I. -Wall
+
 # Platform specifics
 ifeq ($(OS),Windows_NT)
 	# TODO, test and fix
@@ -86,7 +88,7 @@ build-arduino: update-defs
 build-avr: update-defs
 	mkdir -p build/avr
 	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
-	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -I../../microflo -DF_CPU=$(AVR_FCPU) -DAVR=1 -Wall -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
@@ -94,30 +96,30 @@ build-mbed: update-defs
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf build/mbed
 	mkdir -p build/mbed
-	node microflo.js generate $(MBED_GRAPH) build/mbed/main.cpp mbed
+	node microflo.js generate $(MBED_GRAPH) build/mbed/ mbed
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
 
 build-stellaris: update-defs
 	rm -rf build/stellaris
 	mkdir -p build/stellaris
-	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/main.cpp stellaris
+	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/ stellaris
 	cp Makefile.stellaris build/stellaris/Makefile
 	cp startup_gcc.c build/stellaris/
 	cp stellaris.ld build/stellaris/
 	cd build/stellaris && make ROOT=../../thirdparty/stellaris
 
-build-linux: update-defs
+build-linux:
 	rm -rf build/linux
 	mkdir -p build/linux
-	node microflo.js generate $(LINUX_GRAPH) build/linux/main.cpp linux
-	cd build/linux && g++ -o firmware main.cpp -std=c++0x -I../../microflo -DLINUX -Wall -Werror -lrt
+	node microflo.js generate $(LINUX_GRAPH) build/linux/ linux
+	cd build/linux && g++ -o firmware main.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
 build-emscripten: update-defs
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
-	node microflo.js generate $(GRAPH) build/emscripten/main.cpp emscripten
-	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp -I../../microflo -Wall -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
+	node microflo.js generate $(GRAPH) build/emscripten emscripten
+	cd build/emscripten && EMCC_FAST_COMPILER=0 emcc -o microflo-runtime.html main.cpp $(COMMON_CFLAGS) -s NO_DYNAMIC_EXECUTION=1 -s EXPORTED_FUNCTIONS=$(EMSCRIPTEN_EXPORTS)
 
 build: build-arduino build-avr
 

@@ -3,6 +3,7 @@
  * MicroFlo may be freely distributed under the MIT license
  */
 
+require('coffee-script/register');
 var fs = require("fs");
 var cmdFormat = require("./microflo/commandformat.json");
 var microflo = require("./lib/microflo");
@@ -31,9 +32,11 @@ var uploadGraphCommand = function(graphPath, env) {
 
 var generateFwCommand = function(env) {
     var inputFile = process.argv[3];
-    var outputFile = process.argv[4] || inputFile.replace(path.extname(inputFile), "");
-    var target = process.argv[5] || 'arduino'
+    var outputDir = process.argv[4];
+    var target = process.argv[5] || 'arduino';
+    var outputFile = outputDir + '/main.cpp';
 
+    microflo.generate.updateDefinitions(componentLib, outputDir);
     microflo.generate.generateOutput(componentLib, inputFile, outputFile, target);
 }
 
@@ -72,11 +75,10 @@ var updateDefsCommand = function(env) {
         componentLib.definition.components = filtered;
     }
 
-    microflo.generate.updateDefinitions(componentLib, "./microflo");
+    // microflo.generate.updateDefinitions(componentLib, "./microflo");
 }
 
 var flashCommand = function(file, env) {
-    require('coffee-script/register');
     var upload = require('./lib/flash.coffee');
     var tty = env.serial;
     var baud = parseInt(env.baudrate) || 115200;
