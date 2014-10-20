@@ -71,9 +71,10 @@ endif
 all: build
 
 build-arduino:
+	rm -rf build/arduino
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
-	ln -sf `pwd`/microflo build/arduino/lib/
+	cp -r `pwd`/microflo build/arduino/lib/
 	unzip -q -n ./thirdparty/OneWire.zip -d build/arduino/lib/
 	unzip -q -n ./thirdparty/DallasTemperature.zip -d build/arduino/lib/
 	cd thirdparty/Adafruit_NeoPixel && git checkout-index -f -a --prefix=../../build/arduino/lib/Adafruit_NeoPixel/
@@ -81,14 +82,14 @@ build-arduino:
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/DallasTemperature.patch
 	cd build/arduino/lib && test -e patched || patch -p0 < ../../../thirdparty/OneWire.patch
 	touch build/arduino/lib/patched
-	node microflo.js generate $(GRAPH) build/arduino/src/firmware.cpp arduino
-	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES)"
+	node microflo.js generate $(GRAPH) build/arduino/src/ arduino
+	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES) -I./src"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
 build-avr:
 	mkdir -p build/avr
-	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
-	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
+	node microflo.js generate $(GRAPH) build/avr/ avr
+	cd build/avr && $(AVRGCC) -o firmware.elf main.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
@@ -148,7 +149,8 @@ release-arduino:
 	rm -rf build/microflo-arduino
 	mkdir -p build/microflo-arduino/microflo/examples/Standalone
 	cp -r microflo build/microflo-arduino/
-	cp build/arduino/src/firmware.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
+	cp -r build/arduino/src/*gen*.{h,hpp} build/microflo-arduino/microflo/
+	cp build/arduino/src/main.cpp build/microflo-arduino/microflo/examples/Standalone/Standalone.pde
 	cd build/microflo-arduino && zip -q -r ../microflo-arduino.zip microflo
 
 release-mbed: build-mbed
