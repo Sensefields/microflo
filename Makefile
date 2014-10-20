@@ -70,7 +70,7 @@ endif
 # Rules
 all: build
 
-build-arduino: update-defs
+build-arduino:
 	mkdir -p build/arduino/src
 	mkdir -p build/arduino/lib
 	ln -sf `pwd`/microflo build/arduino/lib/
@@ -85,14 +85,14 @@ build-arduino: update-defs
 	cd build/arduino && ino build $(INOOPTIONS) --verbose --cppflags="$(CPPFLAGS) $(DEFINES)"
 	$(AVRSIZE) -A build/arduino/.build/$(MODEL)/firmware.elf
 
-build-avr: update-defs
+build-avr:
 	mkdir -p build/avr
 	node microflo.js generate $(GRAPH) build/avr/firmware.cpp avr
 	cd build/avr && $(AVRGCC) -o firmware.elf firmware.cpp -DF_CPU=$(AVR_FCPU) -DAVR=1 $(COMMON_CFLAGS) -Werror -Wno-error=overflow -mmcu=$(AVRMODEL) -fno-exceptions -fno-rtti $(CPPFLAGS)
 	cd build/avr && $(AVROBJCOPY) -j .text -j .data -O ihex firmware.elf firmware.hex
 	$(AVRSIZE) -A build/avr/firmware.elf
 
-build-mbed: update-defs
+build-mbed:
 	cd thirdparty/mbed && python2 workspace_tools/build.py -t GCC_ARM -m LPC1768
 	rm -rf build/mbed
 	mkdir -p build/mbed
@@ -100,7 +100,7 @@ build-mbed: update-defs
 	cp Makefile.mbed build/mbed/Makefile
 	cd build/mbed && make ROOT_DIR=./../../
 
-build-stellaris: update-defs
+build-stellaris:
 	rm -rf build/stellaris
 	mkdir -p build/stellaris
 	node microflo.js generate $(STELLARIS_GRAPH) build/stellaris/ stellaris
@@ -115,7 +115,7 @@ build-linux:
 	node microflo.js generate $(LINUX_GRAPH) build/linux/ linux
 	cd build/linux && g++ -o firmware main.cpp -std=c++0x $(COMMON_CFLAGS) -DLINUX -Werror -lrt
 
-build-emscripten: update-defs
+build-emscripten:
 	rm -rf build/emscripten
 	mkdir -p build/emscripten
 	node microflo.js generate $(GRAPH) build/emscripten emscripten
@@ -144,12 +144,6 @@ upload-stellaris: build-stellaris
 clean:
 	git clean -dfx --exclude=node_modules
 
-build-host:
-	grunt build
-
-update-defs: build-host
-	node microflo.js update-defs $(LIBRARYOPTION)
-
 release-arduino:
 	rm -rf build/microflo-arduino
 	mkdir -p build/microflo-arduino/microflo/examples/Standalone
@@ -169,7 +163,7 @@ release-stellaris: build-stellaris
 release-emscripten: build-emscripten
     # TODO: package?
 
-release: update-defs build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
+release: build release-mbed release-linux release-microflo release-arduino release-stellaris release-emscripten
 	rm -rf build/microflo-$(VERSION)
 	mkdir -p build/microflo-$(VERSION)
 	cp -r build/microflo-arduino.zip build/microflo-$(VERSION)/
