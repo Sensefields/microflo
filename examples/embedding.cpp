@@ -40,13 +40,9 @@ struct PrintInteger : public SingleOutputComponent {
     }
 };
 
-/** microflo_graph fbp mygraph_gen.h
-    f(Forward) OUT -> IN forward(Forward) OUT -> IN out(Forward)
-    '13' -> IN f
-microflo_graph **/
-
 /* microflo_graph fbp mygraph_gen.h
-    '13' -> IN out(PrintInteger)
+    plusOne(PlusOne) OUT -> IN forward(Forward) OUT -> IN out(PrintInteger)
+    '13' -> IN plusOne
 microflo_graph */
 // #include "mygraph_gen.h"
 

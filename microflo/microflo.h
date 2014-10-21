@@ -86,7 +86,6 @@ do { \
 
 #define MICROFLO_LOAD_STATIC_GRAPH(ctrl_, gr_) \
 do { \
-    fprintf(stderr, "loading graph"); \
     for (unsigned int i=0; i<sizeof(gr_); i++) { \
         unsigned char c = gr_[i]; \
         ctrl_->parseByte(c); \
