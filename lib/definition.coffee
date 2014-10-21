@@ -15,10 +15,12 @@ loadString = (data, type) ->
     if type is ".fbp"
         #data = (trim d for d in data.split '\n').join '\n'
         def = fbp.parse data
+        console.log def, data
     else if type in ['.cpp', '.c', '.h', '.hpp']
         raw = declarec.extractDefinition data, 'microflo_graph', 'c'
         # TODO: use higher level interface, .loadDefinitionsFromString()
         return console.log 'ERROR: only main graph supported when embedded in cpp' if raw.length != 1
+        console.log def, raw[0].content
         def = loadString raw[0].content, '.fbp' if raw[0].format == 'fbp'
         def = loadString raw[0].content, '.json' if raw[0].format == 'json'
     else

@@ -86,6 +86,7 @@ do { \
 
 #define MICROFLO_LOAD_STATIC_GRAPH(ctrl_, gr_) \
 do { \
+    fprintf(stderr, "loading graph"); \
     for (unsigned int i=0; i<sizeof(gr_); i++) { \
         unsigned char c = gr_[i]; \
         ctrl_->parseByte(c); \
@@ -390,6 +391,15 @@ public:
     virtual void process(Packet in, MicroFlo::PortId port) {
         MICROFLO_DEBUG(network->notificationHandler, DebugLevelError, DebugInvalidComponentUsed);
     }
+};
+
+// Convenience class for component which only have one output.
+// Does the output connection allocation for you.
+class SingleOutputComponent : public Component {
+public:
+    SingleOutputComponent() : Component(connections, 1) {}
+private:
+    Connection connections[1];
 };
 
 #define MICROFLO_SUBGRAPH_MAXPORTS 10
